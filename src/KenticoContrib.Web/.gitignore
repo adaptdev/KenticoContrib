@@ -1,0 +1,5 @@
+# Include *.dll.refresh files
+# http://stackoverflow.com/questions/8176102
+![Bb]in/
+[Bb]in/*
+![Bb]in/*.refresh

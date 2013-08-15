@@ -1,0 +1,26 @@
+﻿<cms_formusercontrol>
+  <UserControlDisplayName>Many-to-Many Relationship Manager</UserControlDisplayName>
+  <UserControlCodeName>KenticoContrib.ManyToManyManager</UserControlCodeName>
+  <UserControlType>2</UserControlType>
+  <UserControlFileName>~/CMSFormControls/KenticoContrib/ManyToManyManager.ascx</UserControlFileName>
+  <UserControlDescription>Allows for the management of a many-to-many relationship with custom table data, persisted via a join table.</UserControlDescription>
+  <UserControlForText>true</UserControlForText>
+  <UserControlForLongText>false</UserControlForLongText>
+  <UserControlForInteger>false</UserControlForInteger>
+  <UserControlForLongInteger>false</UserControlForLongInteger>
+  <UserControlForVisibility>false</UserControlForVisibility>
+  <UserControlForDecimal>false</UserControlForDecimal>
+  <UserControlForDateTime>false</UserControlForDateTime>
+  <UserControlForBoolean>false</UserControlForBoolean>
+  <UserControlForGuid>false</UserControlForGuid>
+  <UserControlForFile>false</UserControlForFile>
+  <UserControlForDocAttachments>false</UserControlForDocAttachments>
+  <UserControlShowInDocumentTypes>true</UserControlShowInDocumentTypes>
+  <UserControlShowInCustomTables>true</UserControlShowInCustomTables>
+  <UserControlShowInSystemTables>true</UserControlShowInSystemTables>
+  <UserControlShowInReports>false</UserControlShowInReports>
+  <UserControlShowInWebParts>false</UserControlShowInWebParts>
+  <UserControlShowInBizForms>false</UserControlShowInBizForms>
+  <UserControlDefaultDataType>Text</UserControlDefaultDataType>
+  <UserControlParameters>&lt;form&gt;&lt;category name="RelatedDataSettings" caption="Related Data Settings" visible="True"/&gt;&lt;field column="RelatedCustomTable" fieldcaption="Related Data Table" visible="true" columntype="text" fieldtype="CustomUserControl" columnsize="200" fielddescription="The custom table to be used as the other side of this relationship." publicfield="false" guid="b61df434-7c19-4966-a630-eb9dc5d236cc" visibility="none" displayinsimplemode="true"&gt;&lt;settings&gt;&lt;controlname&gt;customtableselector&lt;/controlname&gt;&lt;/settings&gt;&lt;/field&gt;&lt;field column="RelatedDataNameField" fieldcaption="Name Field" visible="true" columntype="text" fieldtype="CustomUserControl" columnsize="100" fielddescription="The name field for related data items." publicfield="false" guid="273293d6-4a04-484c-a265-81b5b687186a" visibility="none" dependsonanotherfield="true" displayinsimplemode="true"&gt;&lt;settings&gt;&lt;controlname&gt;textboxcontrol&lt;/controlname&gt;&lt;/settings&gt;&lt;/field&gt;&lt;category name="JoinTableSettings" caption="Join Table Settings" visible="True"/&gt;&lt;field column="JoinCustomTable" fieldcaption="Join Table" visible="true" columntype="text" fieldtype="CustomUserControl" columnsize="200" fielddescription="The custom table to be used as the join table." publicfield="false" guid="a18578de-67d2-4e7a-8db8-d3c7594d3235" visibility="none" displayinsimplemode="true"&gt;&lt;settings&gt;&lt;controlname&gt;customtableselector&lt;/controlname&gt;&lt;/settings&gt;&lt;/field&gt;&lt;field column="JoinTableLeftKey" fieldcaption="Left Key Column Name" visible="true" columntype="text" fieldtype="CustomUserControl" columnsize="100" fielddescription="The column name in the join table that contains the keys for this object (the left side of the relationship)." publicfield="false" guid="44d72440-3468-4d2b-acf7-413c6cf372e8" visibility="none" displayinsimplemode="true"&gt;&lt;settings&gt;&lt;controlname&gt;textboxcontrol&lt;/controlname&gt;&lt;/settings&gt;&lt;/field&gt;&lt;field column="JoinTableRightKey" fieldcaption="Right Key Column Name" visible="true" columntype="text" fieldtype="CustomUserControl" columnsize="100" fielddescription="The column name of the join table that contains the keys for the related objects (the right side of the relationship)." publicfield="false" guid="549fb326-f16b-4add-a0ef-ef701b77f5fb" visibility="none" displayinsimplemode="true"&gt;&lt;settings&gt;&lt;controlname&gt;textboxcontrol&lt;/controlname&gt;&lt;/settings&gt;&lt;/field&gt;&lt;/form&gt;</UserControlParameters>
+</cms_formusercontrol>
