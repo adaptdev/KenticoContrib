@@ -1,0 +1,16 @@
+<?xml version="1.0" encoding="utf-8"?>
+<project name="KenticoContrib" default="build" xmlns="http://nant.sourceforge.net/release/0.92/nant.xsd">
+    <property name="dist.dir" value="dist"/>
+
+    <target name="clean">
+        <delete dir="${dist.dir}" />
+    </target>
+
+    <target name="dist" depends="clean">
+        <mkdir dir="${dist.dir}" />
+    </target>
+
+    <target name="build" depends="dist">
+    </target>
+
+</project>
