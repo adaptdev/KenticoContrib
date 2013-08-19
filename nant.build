@@ -1,16 +1,164 @@
 <?xml version="1.0" encoding="utf-8"?>
 <project name="KenticoContrib" default="build" xmlns="http://nant.sourceforge.net/release/0.92/nant.xsd">
-    <property name="dist.dir" value="dist"/>
 
+    <property name="dir.dist" value="dist"/>
+    <property name="dir.src.web" value="src/KenticoContrib.Web/" readonly="true" />
+
+    <!-- List of Kentico object types supported by this build. Additional
+         required info about each is defined below. -->
+    <property name="kentico.types" value="formcontrol,webpart" />
+
+    <property readonly="true" name="kentico.type.formcontrol" value="cms_formusercontrol" />
+    <property readonly="true" name="kentico.type.formcontrol.attr.codename" value="UserControlCodeName" />
+    <property readonly="true" name="kentico.type.formcontrol.attr.codefile" value="UserControlFileName" />
+
+    <property readonly="true" name="kentico.type.webpart" value="cms_webpart" />
+    <property readonly="true" name="kentico.type.webpart.attr.codename" value="WebPartName" />
+    <property readonly="true" name="kentico.type.webpart.attr.codefile" value="WebPartFileName" />
+
+
+    <!--
+    ==========================================================================
+        Removes old build artifacts
+    ==========================================================================
+    -->
     <target name="clean">
-        <delete dir="${dist.dir}" />
+        <delete dir="${dir.dist}" />
     </target>
 
+
+    <!--
+    ==========================================================================
+        Creates the Kentico distribution packages
+
+        One package is created for each object in the project and a single
+        global package is created containing all objects in the project.
+    ==========================================================================
+    -->
     <target name="dist" depends="clean">
-        <mkdir dir="${dist.dir}" />
+
+        <!-- Create the distribution directory -->
+        <mkdir dir="${dir.dist}" />
+
+        <!-- Iterate over all supported Kentico object types -->
+        <foreach item="String" in="${kentico.types}" delim="," property="dist.pkg.objtype">
+            <!-- Iterate over all object config files in the web src directory
+                 for the current object type. -->
+            <foreach item="File" property="dist.pkg.objfile">
+                <in>
+                    <items basedir="${dir.src.web}">
+                        <include name="**/${property::get-value('kentico.type.' + dist.pkg.objtype)}.*.xml"/>
+                    </items>
+                </in>
+                <do>
+                    <!-- Create a package for this object.
+                         Use {ProjectName}.{ObjectCodeName} as package name -->
+                    <xmlpeek property="dist.pkg.pkgname"
+                             file="${dist.pkg.objfile}"
+                             xpath="//${property::get-value('kentico.type.' + dist.pkg.objtype + '.attr.codename')}" />
+                    <property name="dist.pkg.pkgname" value="${project::get-name() + '.' + dist.pkg.pkgname}" />
+                    <call target="dist.pkg" />
+
+                    <!-- Also add this object to the global pacakge -->
+                    <property name="dist.pkg.pkgname" value="${project::get-name()}" />
+                    <call target="dist.pkg" />
+                </do> 
+            </foreach>
+        </foreach>
+
+        <!-- Add `.export` suffix to all distribution files -->
+        <foreach item="File" property="exportfile">
+            <in>
+                <items basedir="${dir.dist}">
+                    <include name="**" />
+                </items>
+            </in>
+            <do>
+                <move file="${exportfile}" tofile="${exportfile}.export" />
+            </do>
+        </foreach>
+
+        <!-- Add each package to a zip archive -->
+        <!-- TODO -->
+
     </target>
 
+
+    <!--
+    ==========================================================================
+        Adds a Kentico object to a distribution package.
+
+        Expects the following properties to be set:
+          dist.pkg.pkgname - The name of the package
+          dist.pkg.objfile - The path to the Kentico object config file
+          dist.pkg.objtype - The Kentico object type. Currently supported
+                             types are 'formcontrol' and 'webpart'.
+    ==========================================================================
+    -->
+    <target name="dist.pkg">
+
+        <!-- Package `Objects` directory -->
+        <property name="dist.pkg.dir.obj"  value="${dir.dist}/${dist.pkg.pkgname}/Data/Objects"/>
+
+        <!-- Package `Files` directory -->
+        <property name="dist.pkg.dir.file" value="${dir.dist}/${dist.pkg.pkgname}/Data/Files"  />
+
+        <!-- The object config file within this package for the given object
+             type. All objects of the same type are lumped together in a single
+             config file per export package, thus this file name is determined
+             by the current object type. -->
+        <property name="dist.pkg.objfile.export"
+                  value="${dist.pkg.dir.obj}/${property::get-value('kentico.type.' + dist.pkg.objtype)}.xml" />
+
+        <!-- Create the directories for this package if they don't exist -->
+        <mkdir dir="${dist.pkg.dir.obj}"  unless="${file::exists(dist.pkg.dir.obj)}" />
+        <mkdir dir="${dist.pkg.dir.file}" unless="${file::exists(dist.pkg.dir.file)}"/>
+
+        <!-- If this package already contains an object config file for the
+             current ojbect type, then inject the config for the current object
+             into the existing file. Otherwise, create this file from the
+             current object config file (copy). -->
+        <choose>
+            <when test="${file::exists(dist.pkg.objfile.export)}">
+                <xmlpeek property="dist.pkg.objfile.export.xml" file="${dist.pkg.objfile.export}" xpath="//NewDataSet" />
+                <xmlpeek property="dist.pkg.objfile.xml" file="${dist.pkg.objfile}" xpath="//NewDataSet" />
+                <xmlpoke file="${dist.pkg.objfile.export}" value="${dist.pkg.objfile.export.xml}${dist.pkg.objfile.xml}" xpath="//NewDataSet" />
+            </when>
+            <otherwise>
+                <copy file="${dist.pkg.objfile}" tofile="${dist.pkg.objfile.export}" />
+            </otherwise>
+        </choose>
+
+        <!-- Extract the object code file path from the object config -->
+        <property name="dist.pkg.codefile" value="" />
+        <xmlpeek file="${dist.pkg.objfile}" property="dist.pkg.codefile" 
+                 xpath="//${property::get-value('kentico.type.' + dist.pkg.objtype + '.attr.codefile')}"
+                 if="${property::exists('kentico.type.' + dist.pkg.objtype + '.attr.codefile')}" />
+
+        <!-- Compute relative codefile name -->
+        <property name="dist.pkg.codefile.relative" value="${string::replace(dist.pkg.codefile, '~/', '')}" />
+
+        <!-- Throw an error if the object code file does not exist -->
+        <fail if="${dist.pkg.codefile != '' and not file::exists(dir.src.web + dist.pkg.codefile.relative)}"
+              message="The following code file specified for object '${dist.pkg.pkgname}' does not exist: ${dist.pkg.codefile}" />
+
+        <!-- Copy the object code file(s) to the package directory -->
+        <copy unless="${dist.pkg.codefile == ''}" todir="${dist.pkg.dir.file}">
+            <fileset basedir="${dir.src.web}">
+                <include name="${dist.pkg.codefile.relative}*" />
+            </fileset>
+        </copy>
+
+    </target>
+
+
+    <!--
+    ==========================================================================
+        Build entry point
+    ==========================================================================
+    -->
     <target name="build" depends="dist">
     </target>
+
 
 </project>
