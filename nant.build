@@ -8,10 +8,12 @@
          required info about each is defined below. -->
     <property name="kentico.types" value="formcontrol,webpart" />
 
+    <!-- Kentico "Form Control" object type properties -->
     <property readonly="true" name="kentico.type.formcontrol" value="cms_formusercontrol" />
     <property readonly="true" name="kentico.type.formcontrol.attr.codename" value="UserControlCodeName" />
     <property readonly="true" name="kentico.type.formcontrol.attr.codefile" value="UserControlFileName" />
 
+    <!-- Kentico "Web Part" object type properties -->
     <property readonly="true" name="kentico.type.webpart" value="cms_webpart" />
     <property readonly="true" name="kentico.type.webpart.attr.codename" value="WebPartName" />
     <property readonly="true" name="kentico.type.webpart.attr.codefile" value="WebPartFileName" />
@@ -65,21 +67,6 @@
                 </do> 
             </foreach>
         </foreach>
-
-        <!-- Add `.export` suffix to all distribution files -->
-        <foreach item="File" property="exportfile">
-            <in>
-                <items basedir="${dir.dist}">
-                    <include name="**" />
-                </items>
-            </in>
-            <do>
-                <move file="${exportfile}" tofile="${exportfile}.export" />
-            </do>
-        </foreach>
-
-        <!-- Add each package to a zip archive -->
-        <!-- TODO -->
 
     </target>
 
@@ -143,7 +130,8 @@
               message="The following code file specified for object '${dist.pkg.pkgname}' does not exist: ${dist.pkg.codefile}" />
 
         <!-- Copy the object code file(s) to the package directory -->
-        <copy unless="${dist.pkg.codefile == ''}" todir="${dist.pkg.dir.file}">
+        <copy unless="${dist.pkg.codefile == ''}"
+              todir="${dist.pkg.dir.file}/${property::get-value('kentico.type.' + dist.pkg.objtype)}">
             <fileset basedir="${dir.src.web}">
                 <include name="${dist.pkg.codefile.relative}*" />
             </fileset>
@@ -154,10 +142,44 @@
 
     <!--
     ==========================================================================
+        Create zip archives for each Kentico distribution package, enabling
+        them to imported into a Kentico site.
+    ==========================================================================
+    -->
+    <target name="archive" depends="dist">
+
+        <!-- Add `.export` suffix to all distribution files, by Kentico
+             convention  -->
+        <foreach item="File" property="archive.exportfile">
+            <in>
+                <items basedir="${dir.dist}">
+                    <include name="**" />
+                </items>
+            </in>
+            <do>
+                <move file="${archive.exportfile}" tofile="${archive.exportfile}.export" />
+            </do>
+        </foreach>
+
+        <!-- Add each package folder to a zip archive -->
+        <foreach item="Folder" in="${dir.dist}" property="archive.pkg">
+            <zip zipfile="${archive.pkg}.zip">
+                <fileset basedir="${archive.pkg}">
+                    <include name="**/*" />
+                </fileset>
+            </zip>
+            <delete dir="${archive.pkg}" />
+        </foreach>
+
+    </target>
+
+
+    <!--
+    ==========================================================================
         Build entry point
     ==========================================================================
     -->
-    <target name="build" depends="dist">
+    <target name="build" depends="archive">
     </target>
 
 
