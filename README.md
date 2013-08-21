@@ -15,4 +15,4 @@ Distribution packages can be found in the `/dist` directory after a successful b
 
 1. Find the package for the component you want to install in the `/dist` directory, or use `KenticoContrib.zip` to install all KenticoContrib components.
 2. Copy the package into the `/CMSSiteUtils/Import` directory of your Kentico site, or upload the package directly via the import wizard.
-3. Use Kentico's [Import wizard](http://devnet.kentico.com/docs/devguide/index.html?import_toolkit_overview.htm) to import the package into your Kentico site. __Make sure the _Import files_ option is selected__.
+3. Use Kentico's [import wizard](http://devnet.kentico.com/docs/devguide/index.html?importing_a_site_or_objects.htm) to import the package into your Kentico site. __Make sure the _Import files_ option is selected__.
