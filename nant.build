@@ -49,7 +49,7 @@
             <foreach item="File" property="dist.pkg.objfile">
                 <in>
                     <items basedir="${dir.src.web}">
-                        <include name="**/${property::get-value('kentico.type.' + dist.pkg.objtype)}.*.xml"/>
+                        <include name="**/${property::get-value('kentico.type.' + dist.pkg.objtype)}.xml"/>
                     </items>
                 </in>
                 <do>
