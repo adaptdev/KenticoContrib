@@ -2,6 +2,8 @@
 
 KenticoContrib is a collection of extensions for [Kentico CMS](http://kentico.com).
 
+Find usage details and full examples in [the wiki](https://github.com/adaptdev/KenticoContrib/wiki).
+
 ## How to Build
 
 ```
