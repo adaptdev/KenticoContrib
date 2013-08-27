@@ -6,10 +6,10 @@
       <UserControlType>2</UserControlType>
       <UserControlFileName>~/CMSFormControls/ManyToManyManager/ManyToManyManager.ascx</UserControlFileName>
       <UserControlDescription>Allows for the management of a many-to-many relationship with custom table data, persisted via a join table.</UserControlDescription>
-      <UserControlForText>true</UserControlForText>
+      <UserControlForText>false</UserControlForText>
       <UserControlForLongText>false</UserControlForLongText>
-      <UserControlForInteger>false</UserControlForInteger>
-      <UserControlForLongInteger>false</UserControlForLongInteger>
+      <UserControlForInteger>true</UserControlForInteger>
+      <UserControlForLongInteger>true</UserControlForLongInteger>
       <UserControlForVisibility>false</UserControlForVisibility>
       <UserControlForDecimal>false</UserControlForDecimal>
       <UserControlForDateTime>false</UserControlForDateTime>

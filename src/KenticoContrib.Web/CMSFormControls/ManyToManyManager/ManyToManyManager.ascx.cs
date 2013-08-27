@@ -1,12 +1,15 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.Data;
+using System.Linq;
 using System.Text;
+using System.Web.UI.WebControls;
 using CMS.DataEngine;
-using CMS.DocumentEngine;
 using CMS.FormControls;
 using CMS.FormEngine;
 using CMS.GlobalHelper;
 using CMS.SettingsProvider;
+using TreeNode = CMS.DocumentEngine.TreeNode;
 
 namespace CMSFormControls.ManyToManyManager
 {
@@ -59,11 +62,12 @@ namespace CMSFormControls.ManyToManyManager
 
         /// <summary>
         /// This form control only uses the join table for persistence, but all form controls are
-        /// still required to provide a value, so we simply return an empty string here.
+        /// still required to provide a value. We use this as an opportunity to store the count of
+        /// related items. This means this form control can only be used with fields of Integer type.
         /// </summary>
         public override object Value
         {
-            get { return string.Empty; }
+            get { return SelectedItems.Count(); }
             set
             {
             }
@@ -73,6 +77,14 @@ namespace CMSFormControls.ManyToManyManager
         /// Indicates whether the form control settings are valid.
         /// </summary>
         protected bool ControlIsValid;
+
+        /// <summary>
+        /// The currently selected list items from the options list.
+        /// </summary>
+        private IEnumerable<ListItem> SelectedItems
+        {
+            get { return list.Items.Cast<ListItem>().Where(listItem => listItem.Selected); }
+        }
 
         protected override void OnInit(EventArgs e)
         {
@@ -109,7 +121,7 @@ namespace CMSFormControls.ManyToManyManager
 
         private void LoadSelectedItems()
         {
-            // A current item ID of 0 means item being edited and new and has not been persisted yet
+            // A current item ID of 0 means item being edited is new and has not been persisted yet
             if (CurrentItemId == 0) return;
 
             var sql = String.Format("SELECT {0} FROM {1} WHERE {2} = @id", JoinTableRightKey, JoinCustomTable.ClassTableName, JoinTableLeftKey);
@@ -148,17 +160,14 @@ namespace CMSFormControls.ManyToManyManager
             sqlString.Append(deleteSql);
 
             // Build a SQL statement that will insert a new record into the join table for each selected item
-            foreach (System.Web.UI.WebControls.ListItem listItem in list.Items)
+            foreach (var listItem in SelectedItems)
             {
-                if (listItem.Selected)
-                {
-                    var insert = string.Format("INSERT INTO {0} ({1}, {2}) VALUES ({3}, {4})",
-                                               JoinCustomTable.ClassTableName, JoinTableLeftKey, JoinTableRightKey,
-                                               CurrentItemId, listItem.Value);
+                var insert = string.Format("INSERT INTO {0} ({1}, {2}) VALUES ({3}, {4})",
+                                            JoinCustomTable.ClassTableName, JoinTableLeftKey, JoinTableRightKey,
+                                            CurrentItemId, listItem.Value);
 
-                    sqlString.Append("\n");
-                    sqlString.Append(insert);
-                }
+                sqlString.Append("\n");
+                sqlString.Append(insert);
             }
 
             ConnectionHelper.ExecuteQuery(sqlString.ToString(), queryParams, QueryTypeEnum.SQLQuery, true);
