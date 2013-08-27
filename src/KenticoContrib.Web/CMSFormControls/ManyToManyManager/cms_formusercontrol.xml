@@ -18,8 +18,8 @@
       <UserControlForFile>false</UserControlForFile>
       <UserControlForDocAttachments>false</UserControlForDocAttachments>
       <UserControlShowInDocumentTypes>true</UserControlShowInDocumentTypes>
-      <UserControlShowInCustomTables>true</UserControlShowInCustomTables>
-      <UserControlShowInSystemTables>true</UserControlShowInSystemTables>
+      <UserControlShowInCustomTables>false</UserControlShowInCustomTables>
+      <UserControlShowInSystemTables>false</UserControlShowInSystemTables>
       <UserControlShowInReports>false</UserControlShowInReports>
       <UserControlShowInWebParts>false</UserControlShowInWebParts>
       <UserControlShowInBizForms>false</UserControlShowInBizForms>
