@@ -47,6 +47,16 @@ namespace CMSFormControls.ManyToManyManager
             get { return ValidationHelper.GetString(GetValue("JoinTableRightKey"), null); }
         }
 
+        public bool UseGuid
+        {
+            get { return ValidationHelper.GetBoolean(GetValue("UseGuid"), false); }
+        }
+
+        protected bool CurrentItemIsTreeNode
+        {
+            get { return Form.EditedObject.GetType() == typeof(TreeNode); }
+        }
+
         /// <summary>
         /// The ID of the object currently being edited by this control.
         /// </summary>
@@ -54,9 +64,22 @@ namespace CMSFormControls.ManyToManyManager
         {
             get
             {
-                return Form.EditedObject.GetType() == typeof (TreeNode)
+                return CurrentItemIsTreeNode
                            ? ((TreeNode) Form.EditedObject).DocumentID
                            : ((SimpleDataClass) Form.EditedObject).ID;
+            }
+        }
+
+        /// <summary>
+        /// The GUID of the object currently being edited by this control. Only applicable to tree nodes.
+        /// </summary>
+        protected Guid CurrentItemGuid
+        {
+            get
+            {
+                return CurrentItemIsTreeNode
+                           ? ((TreeNode) Form.EditedObject).DocumentGUID
+                           : Guid.Empty;
             }
         }
 
@@ -90,9 +113,18 @@ namespace CMSFormControls.ManyToManyManager
         {
             Form.OnAfterSave += FormOnAfterSave;
 
+            var leftKeyExpectedType = UseGuid ? FormFieldDataTypeEnum.GUID : FormFieldDataTypeEnum.Integer;
+
             ControlIsValid = VerifyFieldExists(RelatedCustomTable, RelatedDataNameField) &&
-                             VerifyFieldExists(JoinCustomTable, JoinTableLeftKey) &&
-                             VerifyFieldExists(JoinCustomTable, JoinTableRightKey);
+                             VerifyFieldExists(JoinCustomTable, JoinTableLeftKey, leftKeyExpectedType) &&
+                             VerifyFieldExists(JoinCustomTable, JoinTableRightKey, FormFieldDataTypeEnum.Integer);
+
+            // GUID use is only available for TreeNode documents
+            if (UseGuid && !CurrentItemIsTreeNode)
+            {
+                HandleError("GUID assignment is only available for TreeNode documents");
+                ControlIsValid = false;
+            }
         }
 
         protected void Page_Load(object sender, EventArgs args)
@@ -125,7 +157,9 @@ namespace CMSFormControls.ManyToManyManager
             if (CurrentItemId == 0) return;
 
             var sql = String.Format("SELECT {0} FROM {1} WHERE {2} = @id", JoinTableRightKey, JoinCustomTable.ClassTableName, JoinTableLeftKey);
-            var queryParams = new QueryDataParameters { new DataParameter("id", CurrentItemId) };
+            var queryParams = UseGuid
+                                  ? new QueryDataParameters {new DataParameter("id", CurrentItemGuid)}
+                                  : new QueryDataParameters {new DataParameter("id", CurrentItemId)};
 
             try
             {
@@ -154,7 +188,9 @@ namespace CMSFormControls.ManyToManyManager
         {
             // Build a SQL statement that will delete all existing relationships for this object from the join table
             var deleteSql = string.Format("DELETE FROM {0} WHERE {1} = @id", JoinCustomTable.ClassTableName, JoinTableLeftKey);
-            var queryParams = new QueryDataParameters { new DataParameter("id", CurrentItemId) };
+            var queryParams = UseGuid
+                                  ? new QueryDataParameters { new DataParameter("id", CurrentItemGuid) }
+                                  : new QueryDataParameters { new DataParameter("id", CurrentItemId) };
             
             var sqlString = new StringBuilder();
             sqlString.Append(deleteSql);
@@ -162,9 +198,11 @@ namespace CMSFormControls.ManyToManyManager
             // Build a SQL statement that will insert a new record into the join table for each selected item
             foreach (var listItem in SelectedItems)
             {
+                var currentItemIdentifier = UseGuid ? string.Format("'{0}'", CurrentItemGuid) : CurrentItemId.ToString();
+
                 var insert = string.Format("INSERT INTO {0} ({1}, {2}) VALUES ({3}, {4})",
-                                            JoinCustomTable.ClassTableName, JoinTableLeftKey, JoinTableRightKey,
-                                            CurrentItemId, listItem.Value);
+                                           JoinCustomTable.ClassTableName, JoinTableLeftKey, JoinTableRightKey,
+                                           currentItemIdentifier, listItem.Value);
 
                 sqlString.Append("\n");
                 sqlString.Append(insert);
@@ -196,16 +234,23 @@ namespace CMSFormControls.ManyToManyManager
             return customTable;
         }
 
-        private bool VerifyFieldExists(DataClassInfo customTable, string column)
+        private bool VerifyFieldExists(DataClassInfo customTable, string column, FormFieldDataTypeEnum? expectedType = null)
         {
             if (customTable == null) return false;
 
             var formInfo = new FormInfo(customTable.ClassFormDefinition);
-            var columns = formInfo.GetColumnNames();
 
-            if (!columns.Contains(column))
+            if (!formInfo.FieldExists(column))
             {
                 HandleError(string.Format("The custom table {0} does not contain the column '{1}'", customTable.ClassName, column));
+                return false;
+            }
+
+            var fieldInfo = formInfo.GetFormField(column);
+            if (expectedType.HasValue && fieldInfo.DataType != expectedType)
+            {
+                HandleError(string.Format("The column '{0}.{1}' expected to be type '{2}' but found to be type '{3}",
+                                          customTable.ClassName, column, expectedType, fieldInfo.DataType));
                 return false;
             }
 
